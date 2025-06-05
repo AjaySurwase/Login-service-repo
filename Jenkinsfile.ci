@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/yourorg/login-service.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def imageName = "yourdockerhub/login-service:${env.BUILD_NUMBER}"
+                    sh "docker build -t ${imageName} ."
+                    sh "docker push ${imageName}"
+                    writeFile file: 'image.txt', text: imageName
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'image.txt', fingerprint: true
+                }
+            }
+        }
+    }
+}
